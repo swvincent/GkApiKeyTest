@@ -1,4 +1,6 @@
-﻿namespace GkApiKeyTest.Middleware
+﻿using System.Security.Cryptography;
+
+namespace GkApiKeyTest.Middleware
 {
     /// <summary>
     /// API Key authorization middleware
@@ -26,7 +28,11 @@
             var appSettings = context.RequestServices.GetRequiredService<IConfiguration>();
             var apiKey = appSettings.GetValue<string>(API_KEY_NAME);
 
-            if (!apiKey.Equals(extractedApiKey))
+            var equals = CryptographicOperations.FixedTimeEquals(
+                System.Text.Encoding.UTF8.GetBytes(apiKey),
+                System.Text.Encoding.UTF8.GetBytes(extractedApiKey));
+
+            if (!equals)
             {
                 context.Response.StatusCode = 401;
                 await context.Response.WriteAsync("Unauthorized client");
